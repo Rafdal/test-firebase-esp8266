@@ -20,10 +20,6 @@ void sendFileToStorage(String);
 
 void feedTheDog()
 {
-    // yield();
-    // ESP.wdtFeed();
-    // system_soft_wdt_feed();
-    // delay(0);
     yield();
     ESP.wdtFeed();
 }
