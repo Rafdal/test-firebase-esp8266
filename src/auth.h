@@ -8,6 +8,7 @@
 /* 7. Define the FirebaseAuth data for authentication data */
 FirebaseAuth auth;
 
+void checkTokenStatus();
 
 /* The function to print the operating results */
 void printResult(FirebaseData &data);
@@ -22,6 +23,20 @@ String getTokenType(struct token_info_t info);
 String getTokenError(struct token_info_t info);
 
 String path = "";
+
+void checkTokenStatus(){
+    struct token_info_t info = Firebase.authTokenInfo();
+
+    if (info.status == token_status_error)
+    {
+        Serial.printf("Token info: type = %s, status = %s\n", getTokenType(info).c_str(), getTokenStatus(info).c_str());
+        Serial.printf("Token error: %s\n\n", getTokenError(info).c_str());
+    }
+    else
+    {
+        Serial.printf("Token info: type = %s, status = %s\n\n", getTokenType(info).c_str(), getTokenStatus(info).c_str());
+    }
+}
 
 void printResult(FirebaseData &data)
 {

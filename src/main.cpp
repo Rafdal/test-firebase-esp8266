@@ -14,11 +14,38 @@ void checkTokenStatus();
 // void sendDataToFirebase();
 void sendFileToStorage(String);
 
+// #define DEBUG_PRINT(str) Serial.println(F(str))
+#define DEBUG_PRINT(str)
+
+
+void feedTheDog()
+{
+    // yield();
+    // ESP.wdtFeed();
+    // system_soft_wdt_feed();
+    // delay(0);
+    yield();
+    ESP.wdtFeed();
+}
+
+#include <PerceptorLogger.h>
+PerceptorLogger perceptor;
+
+
 void setup()
 {
     Serial.begin(115200);
 
-    initSDCard(D4);
+    while (!Serial.available())
+    {
+        delay(1000);
+        Serial.println("wait");
+    }
+    Serial.println("INICIALIZANDO!");
+
+    perceptor.initialize();
+
+    initSDCard(D0);
 
     beginWifi();
 
@@ -45,9 +72,23 @@ void setup()
     //Set the size of HTTP response buffers in the case where we want to work with large data.
     fbdo.setResponseSize(1024);    
 
-    // delay(1000);
 
     checkTokenStatus();
+
+    delay(1000);
+
+    // sendFileToStorage("MOV0.CSV");
+    feedTheDog();
+
+    DEBUG_PRINT("{main.cpp:72}");
+
+    perceptor.readAndLog(10, "TEST");
+
+    DEBUG_PRINT("{main.cpp:76}");
+
+    feedTheDog();
+
+    DEBUG_PRINT("{main.cpp:83}");
 }
 
 unsigned long lastMs, lastMs2;
@@ -63,24 +104,10 @@ void loop()
 
     if (currentMs - lastMs2 > 15000)
     {
-        // sendFileToStorage();
         lastMs2 = currentMs;
     }
 }
 
-void checkTokenStatus(){
-    struct token_info_t info = Firebase.authTokenInfo();
-
-    if (info.status == token_status_error)
-    {
-        Serial.printf("Token info: type = %s, status = %s\n", getTokenType(info).c_str(), getTokenStatus(info).c_str());
-        Serial.printf("Token error: %s\n\n", getTokenError(info).c_str());
-    }
-    else
-    {
-        Serial.printf("Token info: type = %s, status = %s\n\n", getTokenType(info).c_str(), getTokenStatus(info).c_str());
-    }
-}
 
 void sendDataToFirebase(){
     Serial.println("------------------------------------");
@@ -124,19 +151,3 @@ void sendFileToStorage(String filename){
         Serial.println();
     }
 }
-
-/* void sendFileToFirebase(){
-    if (Firebase.setFile(fbdo, StorageType::SD, path + "/Binary/File/data", "/MOV0.CSV"))
-    {
-        Serial.println("PASSED");
-        Serial.println("------------------------------------");
-        Serial.println();
-    }
-    else
-    {
-        Serial.println("FAILED");
-        Serial.println("REASON: " + fbdo.fileTransferError());
-        Serial.println("------------------------------------");
-        Serial.println();
-    }
-} */
