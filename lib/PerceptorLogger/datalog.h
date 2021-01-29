@@ -16,8 +16,21 @@ public:
     ~Datalog(){}
 
     String log(DataArray* data, String name, String colnames = "timestamp,x,y,z");
+
+    void logDebug(String text);
 };
 
+
+void Datalog :: logDebug(String text)
+{
+    File dataFile = SD.open("DEBUG.TXT", FILE_WRITE);
+
+    if (dataFile) 
+    {
+        dataFile.println(text);
+        dataFile.close();
+    }
+}
 
 String Datalog :: log(DataArray* data, String name, String colnames)
 {
@@ -55,6 +68,8 @@ String Datalog :: log(DataArray* data, String name, String colnames)
         Serial.println(F("Error abriendo el archivo"));
     }
     dataFile.close();
+    dataFile.close();
+    delay(20);
 
     return filename;
 }

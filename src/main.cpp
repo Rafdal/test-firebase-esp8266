@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <FS.h>
 
 
 #include "private.h"
@@ -12,10 +13,7 @@ FirebaseData fbdo0, fbdo;
 
 void checkTokenStatus();
 // void sendDataToFirebase();
-void sendFileToStorage(String);
-
-// #define DEBUG_PRINT(str) Serial.println(F(str))
-#define DEBUG_PRINT(str)
+void sendFileToStorage(String, String);
 
 
 void feedTheDog()
@@ -27,6 +25,7 @@ void feedTheDog()
 #include <PerceptorLogger.h>
 PerceptorLogger perceptor;
 
+#include <Settings.h>
 
 void setup()
 {
@@ -34,9 +33,16 @@ void setup()
 
     while (!Serial.available())
     {
+        Serial.println(F("wait"));
         delay(1000);
-        Serial.println("wait");
     }
+
+    // settings.json["ssid"] = "Wifi-Alcides";
+    // settings.json["pass"] = "12345678";
+    // settings.json["readInterval"] = 8;
+
+    // settings.print();
+
     Serial.println("INICIALIZANDO!");
 
     perceptor.initialize();
@@ -68,7 +74,6 @@ void setup()
     //Set the size of HTTP response buffers in the case where we want to work with large data.
     fbdo.setResponseSize(1024);    
 
-
     checkTokenStatus();
 
     delay(1000);
@@ -76,15 +81,13 @@ void setup()
     // sendFileToStorage("MOV0.CSV");
     feedTheDog();
 
-    DEBUG_PRINT("{main.cpp:72}");
 
     perceptor.readAndLog(10, "TEST");
 
-    DEBUG_PRINT("{main.cpp:76}");
 
     feedTheDog();
+    
 
-    DEBUG_PRINT("{main.cpp:83}");
 }
 
 unsigned long lastMs, lastMs2;
@@ -106,35 +109,14 @@ void loop()
 
 
 void sendDataToFirebase(){
-    Serial.println("------------------------------------");
-    Serial.println("Set int test...");
 
-    /* if (Firebase.set(fbdo0, path + "/seconds", ((int)(millis()/1000))))
-    {
-        Serial.println("PASSED");
-        Serial.println("PATH: " + fbdo0.dataPath());
-        Serial.println("TYPE: " + fbdo0.dataType());
-        Serial.println("ETag: " + fbdo0.ETag());
-        Serial.print("VALUE: ");
-        printResult(fbdo0);
-        Serial.println("------------------------------------");
-        Serial.println();
-    }
-    else
-    {
-        Serial.println("FAILED");
-        Serial.println("REASON: " + fbdo0.errorReason());
-        Serial.println("------------------------------------");
-        Serial.println();
-    } */
 }
 
-void sendFileToStorage(String filename){
+void sendFileToStorage(String filename, String subfolder = ""){
 
-    
+    // subfolder += filename;
     if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID, filename.c_str(), mem_storage_type_sd, filename.c_str(), "text/csv"))
     {
-
         Serial.printf("Download URL: %s\n", fbdo.downloadURL().c_str());
         Serial.println("------------------------------------");
         Serial.println();

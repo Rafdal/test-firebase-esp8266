@@ -9,10 +9,4 @@ void initSDCard(uint8_t csPin){
         return;
     }
     Serial.println("initialization done.");
-
-    if (SD.exists("/MOV0.CSV")) {
-        Serial.println("MOV0.CSV exists.");
-    } else {
-        Serial.println("MOV0.CSV doesn't exist.");
-    }
 }

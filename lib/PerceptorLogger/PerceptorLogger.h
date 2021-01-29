@@ -76,7 +76,6 @@ void PerceptorLogger::readAndLog(uint16_t files, String name){
 
     DataArray data(samples, 3);
 
-	DEBUG_PRINT("{PerceptorLogger.h:79}");
 
     for (uint16_t j = 0; j < files; j++)
 	{
@@ -87,7 +86,6 @@ void PerceptorLogger::readAndLog(uint16_t files, String name){
 			sensors_event_t a,g,t;
 			mpu.getEvent(&a, &g, &t);
 
-			DEBUG_PRINT("{PerceptorLogger.h:90}");
 
 			data.set(i, 0, a.acceleration.x);
 			data.set(i, 1, a.acceleration.y);
@@ -96,24 +94,21 @@ void PerceptorLogger::readAndLog(uint16_t files, String name){
 			// data.y[i] = a.acceleration.y;
 			// data.z[i] = a.acceleration.z;
 
-			DEBUG_PRINT("{PerceptorLogger.h:99}");
 
 			while (micros() - us < sampling_period_us) ;
 
 			us += sampling_period_us;
 			
-			DEBUG_PRINT("{PerceptorLogger.h:105}");
 
 			feedTheDog();
 
-			DEBUG_PRINT("{PerceptorLogger.h:109}");
 		}
 		Serial.print("Time2Read: ");
 		Serial.println(millis() - ms_stamp);
 
 		String filename = datalog.log(&data, name);
 
-		sendFileToStorage(filename);
+		sendFileToStorage(filename, "TEST/");
 
 		/* for (uint16_t i = 0; i < samples; i++)
 		{
