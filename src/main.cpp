@@ -7,6 +7,7 @@
 #include "auth.h"
 #include "sdcard.h"
 
+
 /* 8. Define the FirebaseConfig data for config data */
 FirebaseConfig config;
 FirebaseData fbdo0, fbdo;
@@ -22,34 +23,62 @@ void feedTheDog()
     ESP.wdtFeed();
 }
 
-#include <PerceptorLogger.h>
-PerceptorLogger perceptor;
+// #include <PerceptorLogger.h>
+// PerceptorLogger perceptor;
+#include <Adafruit_MPU6050.h>
+
+#include <datalog.h>
+#include <Sensors.h>
+Datalog logger;
+DataArray data(512, 3);
 
 #include <Settings.h>
+#include <SerialSetup.h>
+SerialSetup ser;
+#include <DS3231.h>
+DS3231 rtc;
 
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(230400);
+    rtc.begin();
 
-    while (!Serial.available())
-    {
-        Serial.println(F("wait"));
-        delay(1000);
-    }
-
-    // settings.json["ssid"] = "Wifi-Alcides";
-    // settings.json["pass"] = "12345678";
-    // settings.json["readInterval"] = 8;
-
-    // settings.print();
+    settings.load();
+    ser.setupLoop([](){
+        ser.on("ssid", [](String str){
+            settings.json["ssid"] = str;
+		});
+		ser.on("pass", [](String str){
+            settings.json["pass"] = str;
+		});
+		ser.on("save", [](){
+            settings.save();
+		});
+		ser.on("load", [](){
+            settings.load();
+		});
+		ser.on("print", [](){
+            settings.print();
+		});
+		ser.on("reset", [](){
+            ESP.reset();
+		});
+        ser.on("time", [](){
+            rtc.read();
+            Serial.println(rtc.getDateTimeISO8601());
+        });
+        ser.on("set-time", [](String str){
+            rtc.setTime(str);
+        });
+    });
 
     Serial.println("INICIALIZANDO!");
 
-    perceptor.initialize();
+    sensors.begin(&data);
 
     initSDCard(D0);
 
-    beginWifi();
+    // beginWifi();
 
     /* Assign the project host and api key (required) */
     config.host = FIREBASE_HOST;
@@ -59,11 +88,11 @@ void setup()
     auth.user.email = USER_EMAIL;
     auth.user.password = USER_PASSWORD;
 
-    Firebase.reconnectWiFi(true);
+    // Firebase.reconnectWiFi(true);
 
     String base_path = "/UsersData2/";
 
-    Firebase.begin(&config, &auth);
+    // Firebase.begin(&config, &auth);
     /** path for user data is now "/UsersData2/YOUR_USER_UID"
      * The user UID can be taken from auth.token.uid
     */
@@ -74,36 +103,33 @@ void setup()
     //Set the size of HTTP response buffers in the case where we want to work with large data.
     fbdo.setResponseSize(1024);    
 
-    checkTokenStatus();
-
-    delay(1000);
+    // checkTokenStatus();
 
     // sendFileToStorage("MOV0.CSV");
-    feedTheDog();
 
 
-    perceptor.readAndLog(10, "TEST");
+    // perceptor.readAndLog(10, "TEST");
 
+    sensors.setInterval(4000UL);
 
-    feedTheDog();
-    
+    sensors.onRead([](DataArray* data){
+        Serial.println(F("\nCallback\tCallback\tCallback\tCallback"));
 
+        String filename = logger.log(data, "LOG");
+
+        // sendFileToStorage(filename);
+    });
 }
 
-unsigned long lastMs, lastMs2;
-
+unsigned long lastMs;
 void loop()
-{
+{    
+    // sensors.run();
+    ser.listen();
     unsigned long currentMs = millis();
-    if (currentMs - lastMs > 5000)
+    if (currentMs - lastMs > 1000)
     {
-        // sendDataToFirebase();
         lastMs = currentMs;
-    }
-
-    if (currentMs - lastMs2 > 15000)
-    {
-        lastMs2 = currentMs;
     }
 }
 

@@ -19,6 +19,7 @@ public:
 	bool load();
 
 	void print();
+	void clear();
 }settings;
 
 bool Settings::save()
@@ -30,7 +31,7 @@ bool Settings::save()
 	}
 
 	if (SPIFFS.exists(filename))
-		SPIFFS.remove(filename);
+		{SPIFFS.remove(filename);} // Aca no queremos un one line if
 	
 	File file = SPIFFS.open(filename, "w");
 
@@ -47,6 +48,7 @@ bool Settings::save()
 		return false;
 	}
 	file.close();
+	Serial.println(F("Archivo guardado correctamente"));
 
 	return true;
 }
@@ -66,7 +68,7 @@ bool Settings::load()
 		return false;
 	}
 	
-	File file = SPIFFS.open(filename, "w");
+	File file = SPIFFS.open(filename, "r");
 
 	if (!file)
 	{
@@ -88,16 +90,14 @@ bool Settings::load()
 	return true;
 }
 
+void Settings::clear()
+{
+	json.clear();
+}
+
 void Settings::print()
 {
-	if (load())
-	{
-		serializeJsonPretty(json, Serial);
-	}
-	else
-	{
-		Serial.println(F("Error loading settings.json"));
-	}
+	serializeJsonPretty(json, Serial);
 }
 
 #endif

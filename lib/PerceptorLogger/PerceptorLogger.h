@@ -12,10 +12,7 @@
 class PerceptorLogger
 {
 private:
-    Adafruit_MPU6050 mpu;
-    unsigned int sampling_period_us;
-    double freq = 1000; // $ Hz
-    uint16_t samples;
+    
     
 public:
     PerceptorLogger(){}
@@ -29,31 +26,6 @@ public:
 
 
 void PerceptorLogger::initialize(double _freq = 1000, uint16_t _samples = 512){
-
-    freq = _freq;
-    samples = _samples;
-
-    // Try to initialize!
-
-	if (!mpu.begin()) {
-        pinMode(LED_BUILTIN, OUTPUT);
-		while (1) {
-			delay(1000);
-            Serial.println("Failed to find MPU6050 chip");
-		}
-	}
-
-	Serial.println("MPU6050 Found!");
-
-	Wire.setClock(400000L); // 400kHz
-
-	mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
-
-	mpu.setAccelerometerRange(MPU6050_RANGE_2_G);
-
-	delay(100);
-
-	sampling_period_us = round(1000000 * (1.0 / freq));
 
 
 	/* pinMode(4, OUTPUT);

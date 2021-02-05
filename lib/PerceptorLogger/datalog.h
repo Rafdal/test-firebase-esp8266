@@ -15,21 +15,78 @@ public:
     Datalog(){}
     ~Datalog(){}
 
+    void throwError();
+
     String log(DataArray* data, String name, String colnames = "timestamp,x,y,z");
+    void logToFile(DataArray* data, String file, bool printIndex);
+    void logToFile(String data, String file);
 
     void logDebug(String text);
 };
 
+void Datalog::throwError()
+{
+    ets_printf("FATAL ERROR: Null number\n");
+    abort();
+}
+
 
 void Datalog :: logDebug(String text)
 {
-    File dataFile = SD.open("DEBUG.TXT", FILE_WRITE);
+    logToFile(text, "DEBUG.TXT");
+}
+
+void Datalog :: logToFile(DataArray* data, String filename, bool printIndex)
+{
+    File dataFile = SD.open(filename, FILE_WRITE);
+
+    if (dataFile && data != NULL) 
+    {
+        Serial.println(F("Archivo abierto correctamente"));
+        for (uint16_t x = 0; x < data->sizeX() ; x++)
+        {
+            if (printIndex)
+            {
+                dataFile.print(x);
+                dataFile.print(",");
+            }
+            for (uint8_t y = 0; y < (data->sizeY())-1; y++)
+            {
+                if (isnan(data->get(x , y)))
+                {
+                    throwError();
+                }
+                
+                dataFile.print(data->get(x , y));
+                dataFile.print(",");
+            }
+            dataFile.print(data->get(x , data->sizeY()-1));
+            dataFile.println();
+            delay(0);
+        }
+    }
+    else
+    {
+        Serial.println(F("Error abriendo el archivo o DataArray nulo"));
+    }
+    dataFile.close();
+}
+
+void Datalog :: logToFile(String data, String filename)
+{
+    File dataFile = SD.open(filename, FILE_WRITE);
 
     if (dataFile) 
     {
-        dataFile.println(text);
-        dataFile.close();
+        Serial.println(F("Archivo abierto correctamente"));
+        dataFile.println(data);
     }
+    else
+    {
+        Serial.println(F("Error abriendo el archivo"));
+    }
+    dataFile.close();
+    
 }
 
 String Datalog :: log(DataArray* data, String name, String colnames)
@@ -42,34 +99,8 @@ String Datalog :: log(DataArray* data, String name, String colnames)
         if (SD.exists(filename)) {;}
         else {break;}
     }
-
-    File dataFile = SD.open(filename, FILE_WRITE);
-
-    if (dataFile) 
-    {
-        Serial.println(F("Archivo abierto correctamente"));
-        dataFile.println(colnames);
-        for (uint16_t x = 0; x < data->sizeX ; x++)
-        {
-            dataFile.print(x);
-            dataFile.print(",");
-            for (uint8_t y = 0; y < (data->sizeY)-1; y++)
-            {
-                dataFile.print(data->operator()(x , y));
-                dataFile.print(",");
-            }
-            dataFile.print(data->operator()(x , data->sizeY-1));
-            dataFile.println();
-            delay(0);
-        }
-    }
-    else
-    {
-        Serial.println(F("Error abriendo el archivo"));
-    }
-    dataFile.close();
-    dataFile.close();
-    delay(20);
+    logToFile(colnames, filename);
+    logToFile(data, filename, true);    
 
     return filename;
 }
